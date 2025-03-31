@@ -1,6 +1,6 @@
 import { Injectable, signal, inject } from '@angular/core';
 import { toObservable } from '@angular/core/rxjs-interop';
-import { filter, take, Observable, distinctUntilChanged, map } from 'rxjs';
+import { filter, take, Observable, distinctUntilChanged, map, tap } from 'rxjs';
 import { TriplitClient } from '@triplit/client';
 import { createQuery } from '@triplit/angular';
 import { schema } from '../../../triplit/schema';
@@ -89,16 +89,26 @@ export class TriplitService {
   }
 
   getProjectsQueryForUser(userId?: string): Observable<Models['projets'][]> {
-    // Note: Query callback will be triggered multiple times during sync transitions.
-    // Use distinctUntilChanged() if you need to deduplicate results
+    console.log('Getting projects:', {
+      mode: this.client.serverUrl ? 'remote' : 'local'
+    });
+    
     const query = this.client.query('projets')
       .Order('created_at', 'DESC');
     
-    if (userId) {
+    if (this.client.serverUrl && userId) {
       query.Where('owner_id', '=', userId);
     }
 
-    return createQuery(() => ({ client: this.client, query })).results$ as Observable<Models['projets'][]>;
+    return createQuery(() => ({ client: this.client, query })).results$.pipe(
+      map(results => results || []),
+      tap(results => {
+        console.log('Query results:', {
+          count: results.length,
+          mode: this.client.serverUrl ? 'remote' : 'local'
+        });
+      })
+    ) as Observable<Models['projets'][]>;
   }
 
   getProjectWithRelations(projectId: string): Observable<ProjectWithRelations | undefined> {
@@ -153,9 +163,8 @@ export class TriplitService {
   }
 
   createRemoteClient(token: string): TriplitClient<typeof schema> {
-    console.log('TriplitService: Creating remote client');
+    console.log('Creating remote client');
     
-    // Clean up local listener if it exists
     if (this.localConnectionStatusCleanup) {
       this.localConnectionStatusCleanup();
       this.localConnectionStatusCleanup = undefined;
@@ -168,21 +177,18 @@ export class TriplitService {
       serverUrl: environment.triplitServerUrl,
       token,
       onSessionError: async (type) => {
-        console.warn('TriplitService: Remote client session error:', type);
+        console.warn('Remote client session error:', type);
         await this.handleSessionError();
       }
     });
 
-    console.log('TriplitService: Initial remote client connection status:', client.connectionStatus);
+    console.log('Initial connection status:', client.connectionStatus);
     this.connectionStatus.set(client.connectionStatus as ConnectionStatus);
     
-    // Log ALL connection status changes
     client.onConnectionStatusChange((status) => {
-      console.log('TriplitService: Remote client connection status changed:', {
+      console.log('Connection status changed:', {
         from: client.connectionStatus,
-        to: status,
-        serverUrl: environment.triplitServerUrl,
-        hasToken: !!token
+        to: status
       });
       this.connectionStatus.set(status as ConnectionStatus);
     });
@@ -226,33 +232,29 @@ export class TriplitService {
   }
 
   async syncToRemote(userId: string): Promise<void> {
-    console.log('TriplitService: Starting sync to remote', { userId });
+    console.log('Starting sync to remote');
     
     try {
-      // Get only projects with null owner_id from local client
       const query = this.client.query('projets')
         .Where('owner_id', '=', null);
 
-      // Use a one-time query instead of subscription
       const projects = await this.client.fetch(query);
-      console.log('TriplitService: Found local projects without owner:', projects);
+      console.log('Found local projects to sync:', projects.length);
       
-      // Update each project with the user ID
       for (const project of projects) {
         try {
           await this.client.update('projets', project.id, async (entity) => {
             entity.owner_id = userId;
           });
-          console.log('TriplitService: Updated project:', project.id);
+          console.log('Updated project:', { id: project.id });
         } catch (error) {
-          console.error('TriplitService: Error updating project:', project.id, error);
-          // Continue with other projects even if one fails
+          console.error('Error updating project:', { id: project.id });
         }
       }
-      console.log('TriplitService: Updated local projects with owner_id:', userId);
+      console.log('Sync complete');
 
     } catch (error) {
-      console.error('TriplitService: Error in syncToRemote:', error);
+      console.error('Error in sync:', error);
       throw error;
     }
   }

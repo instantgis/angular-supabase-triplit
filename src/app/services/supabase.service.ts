@@ -82,8 +82,43 @@ export class SupabaseService {
   }
 
   async signOut() {
-    const { error } = await this.supabase.auth.signOut();
-    if (error) throw error;
+    try {
+      // First, get the current user
+      const { data: { user } } = await this.supabase.auth.getUser();
+      
+      if (!user) {
+        // No user logged in, just clean up
+        console.log('No user found, cleaning up local state');
+        this.userSubject.next(null);
+        this.triplitService.endSession();
+        return;
+      }
+
+      try {
+        // Try to sign out from Supabase
+        await this.supabase.auth.signOut();
+      } catch (error) {
+        // Ignore specific JWT session errors
+        if (error instanceof Error && error.message.includes('Session from session_id claim in JWT does not exist')) {
+          console.log('Session already expired, proceeding with local cleanup');
+        } else {
+          console.error('Unexpected sign out error:', error);
+        }
+      }
+
+      // Always clean up local state
+      this.userSubject.next(null);
+      this.triplitService.endSession();
+      
+      // Force clear any lingering auth state
+      await this.supabase.auth.initialize();
+      
+    } catch (error) {
+      console.error('Sign out process error:', error);
+      // Ensure local state is cleaned up even on errors
+      this.userSubject.next(null);
+      this.triplitService.endSession();
+    }
   }
 
   getCurrentUser() {

@@ -56,6 +56,7 @@ export class AppComponent implements OnInit, OnDestroy {
     const client = this.triplitService.createLocalClient();
     console.log('AppComponent: Local client initialized');
 
+    // Initially get all projects without userId filter
     this.queryResults = this.triplitService.getProjectsQueryForUser();
     this.currentSubscription = this.queryResults.subscribe(projects => {
       console.log('AppComponent: Projects loaded:', projects);
@@ -67,6 +68,22 @@ export class AppComponent implements OnInit, OnDestroy {
     if (!user) return;
     
     await this.syncToRemote(user);
+    
+    const { data: { session } } = await this.supabaseService.getSession();
+    const token = session?.access_token ?? '';
+    
+    this.triplitService.createRemoteClient(token);
+    await this.triplitService.loginWithToken(token);
+    
+    await firstValueFrom(this.triplitService.waitForConnection().pipe(take(1)));
+    console.log('AppComponent: Connected to remote');
+
+    // After connecting to remote, update query with user ID
+    this.queryResults = this.triplitService.getProjectsQueryForUser(user.id);
+    this.currentSubscription?.unsubscribe();
+    this.currentSubscription = this.queryResults.subscribe(projects => {
+      console.log('AppComponent: Remote projects loaded:', projects);
+    });
   }
 
   async syncToRemote(user: User) {
