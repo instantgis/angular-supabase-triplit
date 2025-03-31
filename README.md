@@ -27,10 +27,6 @@ A demonstration of offline-first capabilities using Triplit for data sync and Su
    TRIPLIT_DB_URL=your_triplit_database_url
    TRIPLIT_ANON_TOKEN=your_triplit_anonymous_token
    TRIPLIT_SERVICE_TOKEN=your_triplit_service_token
-
-   # App variables
-   VITE_TRIPLIT_SERVER_URL=$TRIPLIT_DB_URL
-   VITE_TRIPLIT_TOKEN=$TRIPLIT_ANON_TOKEN
    ```
 
 ### Supabase Configuration
@@ -73,7 +69,7 @@ This demo implements a local-first architecture where:
 - Supabase JS 2.49.4
 
 ## Live Demo
-Try it out at: https://triplit-supabase-demo.vercel.app
+Try it out at: https://angular-triplit-supabase.netlify.app
 
 ## Documentation
 For more details about the implementation, check out our [technical article](link-to-article).
