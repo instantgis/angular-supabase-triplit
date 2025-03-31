@@ -241,8 +241,8 @@ This pattern can be adapted for any application where users need to start workin
 Software engineer passionate about offline-first architectures and progressive web apps. Currently building tools to make web apps more resilient and user-friendly. Find more of my work on GitHub.
 
 ## Try It Yourself
-- Live Demo: https://triplit-supabase-demo.vercel.app
-- Source Code: https://github.com/triplit/triplit-supabase-demo
+- Live Demo: https://angular-supabase-triplit.netlify.app/
+- Source Code: https://github.com/instantgis/angular-supabase-triplit
 
 ---
 

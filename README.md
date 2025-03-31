@@ -72,7 +72,7 @@ This demo implements a local-first architecture where:
 - Supabase JS 2.49.4
 
 ## Live Demo
-Try it out at: https://angular-triplit-supabase.netlify.app
+Try it out at: https://angular-supabase-triplit.netlify.app/
 
 ## Documentation
 For more details about the implementation, check out our [technical article](link-to-article).
