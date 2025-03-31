@@ -26,11 +26,6 @@ export class SupabaseService {
     // Ensure URL ends with no trailing slash
     const supabaseUrl = environment.supabaseUrl.replace(/\/$/, '');
 
-    console.log('Initializing Supabase with:', {
-      url: supabaseUrl,
-      keyLength: environment.supabaseKey?.length || 0
-    });
-
     this.supabase = createClient(
       supabaseUrl,
       environment.supabaseKey,
