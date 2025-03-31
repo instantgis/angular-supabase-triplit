@@ -1,0 +1,63 @@
+.create-project {
+  max-width: 600px;
+  padding: 0.25rem;
+}
+
+.form-group {
+  margin-bottom: 0.5rem;
+  
+  label {
+    display: block;
+    margin-bottom: 0.125rem;
+    color: #fff;
+    font-weight: 500;
+  }
+  
+  input, textarea, select {
+    width: 100%;
+    padding: 0.25rem;
+    background-color: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 4px;
+    color: #fff;
+    
+    &:focus {
+      outline: none;
+      border-color: #007bff;
+    }
+  }
+  
+  textarea {
+    min-height: 40px;
+    max-height: 80px;
+    resize: vertical;
+  }
+}
+
+button {
+  width: 100%;
+  padding: 0.375rem;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 0.375rem;
+  
+  &:hover {
+    background-color: #0056b3;
+  }
+  
+  &:disabled {
+    background-color: #666;
+    cursor: not-allowed;
+  }
+}
+
+.error {
+  color: #dc3545;
+  margin-top: 0.375rem;
+  font-size: 0.875rem;
+}
+
+

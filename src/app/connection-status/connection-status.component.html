@@ -1,0 +1,7 @@
+<div class="connection-status">
+  <span class="label">Sync Status:</span>
+  <div class="status-container">
+    <span class="indicator" [class]="status$ | async"></span>
+    <span class="status-text">{{ status$ | async | titlecase }}</span>
+  </div>
+</div>

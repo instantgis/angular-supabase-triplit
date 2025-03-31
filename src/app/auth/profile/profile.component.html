@@ -1,0 +1,23 @@
+<div class="profile">
+  <ng-container *ngIf="supabaseService.user$ | async as user; else notLoggedIn">
+    <div class="user-info">
+      <p>Logged in as: {{ user.email }}</p>
+      <button (click)="signOut()">Sign Out</button>
+    </div>
+  </ng-container>
+  <ng-template #notLoggedIn>
+    <div class="user-info">
+      <button class="sign-in-btn" (click)="showLoginForm = true">Sign In</button>
+    </div>
+  </ng-template>
+
+  <!-- Login Modal -->
+  @if (showLoginForm) {
+    <div class="login-modal">
+      <div class="modal-content">
+        <button class="close-btn" (click)="showLoginForm = false">&times;</button>
+        <app-login (loginSuccess)="showLoginForm = false"/>
+      </div>
+    </div>
+  }
+</div>

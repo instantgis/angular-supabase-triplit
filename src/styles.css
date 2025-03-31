@@ -1,0 +1,140 @@
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  height: 100vh;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+}
+
+.app-layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+header {
+  background-color: #1a1a1a;
+  padding: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #333;
+}
+
+main {
+  flex: 1;
+  display: flex;
+  max-width: 1440px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+nav {
+  width: 300px;
+  padding: 1rem;
+  background-color: #1a1a1a;
+  border-right: 1px solid #333;
+}
+
+.content {
+  flex: 1;
+  padding: 2rem;
+  background-color: #242424;
+}
+
+.connection-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.status-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Keep your existing indicator styles */
+.indicator {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.indicator.open {
+  background-color: greenyellow;
+  border: green 1px solid;
+}
+
+.indicator.closed {
+  background-color: orangered;
+  border: red 1px solid;
+}
+
+.indicator.connecting {
+  background-color: yellow;
+  border: darkgoldenrod 1px solid;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .app-layout {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  main {
+    flex: 1;
+    padding: 0;
+  }
+
+  .content {
+    padding: 1rem;
+  }
+
+  .auth-container {
+    width: 100%;
+    padding: 0 1rem;
+  }
+
+  .projects-section {
+    margin-top: 1rem;
+  }
+
+  .create-project-column {
+    position: static;
+    margin-bottom: 2rem;
+  }
+
+  .projects-list-column {
+    padding: 0;
+  }
+}
+
+/* Fix iOS safe area issues */
+@supports (padding: max(0px)) {
+  .app-layout {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .auth-header {
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
+  }
+}
+
+

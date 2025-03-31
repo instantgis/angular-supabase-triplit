@@ -1,0 +1,52 @@
+.connection-status {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem;
+  white-space: nowrap;
+}
+
+.label {
+  color: #888;
+  font-size: 0.875rem;
+}
+
+.status-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.status-text {
+  font-size: 0.875rem;
+  color: #fff;
+  min-width: 80px;
+}
+
+.open {
+  background-color: #22c55e;
+  box-shadow: 0 0 6px #22c55e;
+}
+
+.closed {
+  background-color: #ef4444;
+  box-shadow: 0 0 6px #ef4444;
+}
+
+.connecting {
+  background-color: #eab308;
+  box-shadow: 0 0 6px #eab308;
+}
+
+.uninitialized {
+  background-color: #94a3b8;
+  box-shadow: 0 0 6px #94a3b8;
+}
+

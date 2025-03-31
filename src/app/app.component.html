@@ -1,0 +1,63 @@
+<div class="app-layout">
+  <header class="auth-header">
+    <div class="auth-container">
+      <div class="header-content">
+        <div class="auth-section">
+          <div class="section-header">
+            <img src="assets/supabase.png" alt="Supabase logo" class="service-logo">
+            <h3 class="section-label">Supabase</h3>
+          </div>
+          <app-profile />
+        </div>
+        <div class="auth-section">
+          <div class="section-header">
+            <img src="assets/triplit.png" alt="Triplit logo" class="service-logo">
+            <h3 class="section-label">Triplit</h3>
+          </div>
+          <div class="triplit-controls">
+            <app-connection-status />
+            <button 
+              class="sync-button" 
+              (click)="syncLocalProjects()"
+              [disabled]="!(supabaseService.user$ | async)"
+            >
+              Sync to Cloud
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content (Projects) -->
+  <main>
+    <div class="content">
+      <div class="projects-section">
+        <!-- Two-column layout -->
+        <div class="projects-grid">
+          <!-- Left column: Creation form -->
+          <div class="create-project-column">
+            <h2>Create New Project</h2>
+            <app-create-project />
+          </div>
+          
+          <!-- Right column: Projects list -->
+          <div class="projects-list-column">
+            <h2>Your Projects</h2>
+            @if (queryResults | async; as projects) {
+              @if (projects.length) {
+                @for (project of projects; track project.id) {
+                  <app-project-card [project]="project" />
+                }
+              } @else {
+                <p>No projects found. Create your first project!</p>
+              }
+            } @else {
+              <p>Loading projects...</p>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+

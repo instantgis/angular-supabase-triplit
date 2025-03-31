@@ -1,0 +1,29 @@
+<div class="project-card">
+  <div class="project-header">
+    <h3>{{ project.name }}</h3>
+    <button class="delete-btn" (click)="deleteProject()">Delete</button>
+  </div>
+  <div class="project-content">
+    <label>Description:</label>
+    <p>{{ project.content }}</p>
+  </div>
+  <div class="project-meta">
+    <div class="meta-item">
+      <label>Language:</label>
+      <span class="language">{{ project.language }}</span>
+    </div>
+    <div class="meta-item">
+      <label>Transport:</label>
+      <span class="transport">{{ project.transport }}</span>
+    </div>
+    <div class="meta-item">
+      <label>Status:</label>
+      <span class="status" [class.published]="project.status === 'published'">
+        {{ project.status }}
+      </span>
+    </div>
+  </div>
+  @if (error) {
+    <div class="error">{{ error }}</div>
+  }
+</div>

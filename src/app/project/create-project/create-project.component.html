@@ -1,0 +1,53 @@
+<div class="create-project">
+  <form [formGroup]="projectForm" (ngSubmit)="onSubmit()">
+    <div class="form-group">
+      <label for="name">Project Name</label>
+      <input id="name" type="text" formControlName="name" placeholder="Enter project name" required>
+    </div>
+    
+    <div class="form-group">
+      <label for="content">Description</label>
+      <textarea id="content" formControlName="content" placeholder="Enter project description"></textarea>
+    </div>
+    
+    <div class="form-group">
+      <label for="language">Language</label>
+      <select id="language" formControlName="language" required>
+        <option value="en">English</option>
+        <option value="fr">French</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="transport">Transport</label>
+      <select id="transport" formControlName="transport" required>
+        <option value="walking">Walking</option>
+        <option value="biking">Biking</option>
+        <option value="driving">Driving</option>
+        <option value="boating">Boating</option>
+        <option value="flying">Flying</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="status">Status</label>
+      <select id="status" formControlName="status" required>
+        <option value="draft">Draft</option>
+        <option value="published">Published</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="duration">Duration (hours)</label>
+      <input id="duration" type="number" formControlName="duration" step="0.5">
+    </div>
+    
+    <button type="submit" [disabled]="!projectForm.valid">Create Project</button>
+  </form>
+  
+  <div class="error" *ngIf="error">{{ error }}</div>
+</div>
+
+
+
+
