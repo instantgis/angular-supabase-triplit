@@ -12,7 +12,6 @@ A demonstration of offline-first capabilities using Triplit for data sync and Su
 
 ### Prerequisites
 - Node.js (latest LTS version)
-- Angular CLI (`npm install -g @angular/cli`)
 - Supabase account
 - Triplit account
 
@@ -20,20 +19,24 @@ A demonstration of offline-first capabilities using Triplit for data sync and Su
 1. Create a `.env` file in the root directory
 2. Get your Triplit credentials:
    - Go to your Triplit project dashboard
-   - Copy your database URL, anonymous token, and service token
+   - Copy your database URL
+   - Add them to `.env`:
+3. Get your Supabase credentials:  
+   - Go to your Supabase project dashboard
+   - Copy your project URL and anon key
    - Add them to `.env`:
    ```
    # Triplit CLI Variables
    TRIPLIT_DB_URL=your_triplit_database_url
-   TRIPLIT_ANON_TOKEN=your_triplit_anonymous_token
-   TRIPLIT_SERVICE_TOKEN=your_triplit_service_token
+   SUPABASE_URL=your_supabase_project_url
+   SUPABASE_KEY=your_supabase_anon_key
    ```
 
 ### Supabase Configuration
 1. Get your Supabase JWT secret:
    - Go to your Supabase project dashboard
    - Navigate to Project Settings > API
-   - Copy the JWT Secret (starts with "super-secret-jwt-token-...")
+   - Copy the JWT Secret 
 
 2. Configure Triplit:
    - Go to your Triplit project dashboard
