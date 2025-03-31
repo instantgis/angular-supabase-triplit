@@ -13,18 +13,26 @@ export class SupabaseService {
   user$ = this.userSubject.asObservable();
 
   constructor(private triplitService: TriplitService) {
+    // Validate URLs before initialization
+    if (!environment.supabaseUrl || !environment.supabaseUrl.startsWith('https://')) {
+      console.error('Invalid Supabase URL:', environment.supabaseUrl);
+      throw new Error('Invalid Supabase URL configuration');
+    }
+
+    if (!environment.supabaseKey) {
+      throw new Error('Missing Supabase key configuration');
+    }
+
+    // Ensure URL ends with no trailing slash
+    const supabaseUrl = environment.supabaseUrl.replace(/\/$/, '');
+
     console.log('Initializing Supabase with:', {
-      url: environment.supabaseUrl,
+      url: supabaseUrl,
       keyLength: environment.supabaseKey?.length || 0
     });
 
-    if (!environment.supabaseUrl || !environment.supabaseKey) {
-      console.error('Missing Supabase configuration:', environment);
-      throw new Error('Missing Supabase configuration');
-    }
-
     this.supabase = createClient(
-      environment.supabaseUrl,
+      supabaseUrl,
       environment.supabaseKey,
       {
         auth: {
