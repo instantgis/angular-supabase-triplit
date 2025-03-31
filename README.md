@@ -1,4 +1,6 @@
-# Offline-First Angular Demo with Triplit and Supabase
+# Offline-First with Supabase and Triplit
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A demonstration of offline-first capabilities using Triplit for data sync and Supabase for authentication. This project showcases how to:
 - Start working immediately without authentication
@@ -81,6 +83,4 @@ Pull requests are welcome. For major changes, please open an issue first to disc
 
 ## License
 [MIT](LICENSE)
-
-
 
