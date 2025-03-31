@@ -34,7 +34,8 @@
               "core-js/actual/symbol/dispose.js",
               "core-js/proposals/iterator-helpers.js",
               "core-js/proposals/promise-with-resolvers.js"
-            ]
+            ],
+            "fileReplacements": []
           },
           "configurations": {
             "production": {
@@ -50,7 +51,8 @@
                   "maximumError": "4kb"
                 }
               ],
-              "outputHashing": "all"
+              "outputHashing": "all",
+              "fileReplacements": []
             },
             "development": {
               "buildOptimizer": false,
@@ -58,7 +60,8 @@
               "vendorChunk": true,
               "extractLicenses": false,
               "sourceMap": true,
-              "namedChunks": true
+              "namedChunks": true,
+              "fileReplacements": []
             }
           },
           "defaultConfiguration": "production"
@@ -79,6 +82,8 @@
     }
   }
 }
+
+
 
 
 

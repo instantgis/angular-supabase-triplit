@@ -4,7 +4,7 @@ import { filter, take, Observable, distinctUntilChanged, map, tap } from 'rxjs';
 import { TriplitClient } from '@triplit/client';
 import { createQuery } from '@triplit/angular';
 import { schema } from '../../../triplit/schema';
-import { environment } from '../../environments/environment';
+import { environment } from '../../environments/.generated/environment';
 import type { Entity } from '@triplit/client';
 
 export type ConnectionStatus = 'OPEN' | 'CLOSED' | 'CONNECTING' | 'UNINITIALIZED';

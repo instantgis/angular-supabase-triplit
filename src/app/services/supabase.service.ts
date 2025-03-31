@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { createClient, SupabaseClient, User } from '@supabase/supabase-js';
-import { environment } from '../../environments/environment';
+import { environment } from '../../environments/.generated/environment';
 import { BehaviorSubject } from 'rxjs';
 import { TriplitService } from './triplit.service';
 

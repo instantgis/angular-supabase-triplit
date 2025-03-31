@@ -4,9 +4,11 @@
   "version": "1.0.16",
   "scripts": {
     "ng": "ng",
-    "dev": "node replace-env.js && ng serve angular-triplit-supabase",
-    "start": "node replace-env.js && ng serve angular-triplit-supabase",
-    "build": "node replace-env.js && ng build angular-triplit-supabase",
+    "predev": "node replace-env.js",
+    "dev": "ng serve angular-triplit-supabase",
+    "prebuild": "node replace-env.js",
+    "build": "ng build angular-triplit-supabase",
+    "clean": "rimraf src/environments/.generated",
     "watch": "ng build angular-triplit-supabase --watch --configuration development"
   },
   "private": true,
@@ -47,5 +49,6 @@
     }
   }
 }
+
 
 

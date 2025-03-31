@@ -1,9 +1,12 @@
 # See https://docs.github.com/get-started/getting-started-with-git/ignoring-files for more about ignoring files.
 
-# Environment files
-/src/environments/environment.ts
-/src/environments/environment.development.ts
-/src/environments/environment.production.ts
+# Generated environment files
+/src/environments/.generated
+
+# Environment variables
+.env
+.env.local
+.env.*
 
 # Compiled output
 /dist
@@ -47,4 +50,5 @@ testem.log
 Thumbs.db
 .env
 .env
+
 

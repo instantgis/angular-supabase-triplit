@@ -4,3 +4,4 @@ export const environment = {
   supabaseUrl: '__SUPABASE_URL__',
   supabaseKey: '__SUPABASE_KEY__',
 };
+

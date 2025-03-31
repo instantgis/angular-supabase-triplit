@@ -3,35 +3,35 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 
-// Load environment variables from .env file
 dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Log the values (for debugging)
-console.log('Environment variables:', {
-  TRIPLIT_DB_URL: process.env.TRIPLIT_DB_URL,
-  SUPABASE_URL: process.env.SUPABASE_URL,
-  SUPABASE_KEY: process.env.SUPABASE_KEY,
-});
+// ONLY write to .generated directory
+const tempEnvPath = path.join(__dirname, 'src/environments/.generated');
+if (!fs.existsSync(tempEnvPath)) {
+  fs.mkdirSync(tempEnvPath, { recursive: true });
+}
 
-// List of environment files to update
-const environmentFiles = [
-  'src/environments/environment.ts',
-  'src/environments/environment.development.ts',
-  'src/environments/environment.production.ts'
-];
+// Read from template file
+const templatePath = path.join(__dirname, 'src/environments/environment.template.ts');
+const template = fs.readFileSync(templatePath, 'utf8');
 
-environmentFiles.forEach(filePath => {
-  const fullPath = path.join(__dirname, filePath);
-  if (!fs.existsSync(fullPath)) {
-    console.error(`File not found: ${fullPath}`);
-    return;
-  }
+// Generate files ONLY in .generated directory
+const environments = {
+  'environment.ts': { production: false },
+  'environment.development.ts': { production: false },
+  'environment.production.ts': { production: true }
+};
 
-  let content = fs.readFileSync(fullPath, 'utf8');
-
+Object.entries(environments).forEach(([fileName, config]) => {
+  let content = template;
+  
+  // Replace environment-specific values
+  content = content.replace('production: false', `production: ${config.production}`);
+  
+  // Replace environment variables
   const replacements = {
     '__TRIPLIT_SERVER_URL__': process.env.TRIPLIT_DB_URL || '',
     '__SUPABASE_URL__': process.env.SUPABASE_URL || '',
@@ -45,7 +45,10 @@ environmentFiles.forEach(filePath => {
     content = content.replace(new RegExp(placeholder, 'g'), value);
   });
 
-  fs.writeFileSync(fullPath, content);
-  console.log(`Updated ${filePath}`);
+  // Write ONLY to .generated directory
+  const outputPath = path.join(tempEnvPath, fileName);
+  fs.writeFileSync(outputPath, content);
+  console.log(`Generated ${fileName}`);
 });
+
 
