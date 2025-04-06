@@ -1,4 +1,4 @@
-import { Injectable, signal, inject } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import { toObservable } from '@angular/core/rxjs-interop';
 import { filter, take, Observable, distinctUntilChanged, map, tap } from 'rxjs';
 import { TriplitClient } from '@triplit/client';
@@ -31,7 +31,7 @@ export class TriplitService {
   readonly connectionStatus$ = toObservable(this.connectionStatus).pipe(
     distinctUntilChanged()
   );
-  private localConnectionStatusCleanup?: () => void;
+  private connectionStatusCleanup?: () => void;
   constructor() {
     this.client = new TriplitClient<typeof schema>({
       storage: 'indexeddb',
@@ -44,7 +44,14 @@ export class TriplitService {
         await this.handleSessionError();
       } 
     });
+
+    this.connectionStatusCleanup = this.setupClientListeners(this.client);
   }
+
+  ngOnDestroy() {
+    this.connectionStatusCleanup?.();
+  }
+
   private async handleSessionError(): Promise<void> {
     try {
       await this.endSession();
@@ -66,23 +73,21 @@ export class TriplitService {
     this.client.endSession();
   }
 
-  async loginWithToken(token: string | null): Promise<void> {
-    console.log('TriplitService: loginWithToken called', {
+  async startAuthenticatedSession(token: string | null): Promise<void> {
+    console.log('TriplitService: startAuthenticatedSession called', {
       hasToken: !!token,
       clientInitialized: !!this.client
     });
     
+    if (!token) {
+      throw new Error('Cannot start session without a token');
+    }
+
     try {
-      if (token) {
-        this.endSession();
-        await this.startSession(token);
-        console.log('TriplitService: New session started');
-      } else {
-        this.endSession();
-        console.log('TriplitService: Session ended');
-      }
+      await this.startSession(token);
+      console.log('TriplitService: New session started');
     } catch (error) {
-      console.error('TriplitService: Error in loginWithToken:', {
+      console.error('TriplitService: Error in startAuthenticatedSession:', {
         message: error instanceof Error ? error.message : 'Unknown error',
         error
       });
@@ -144,43 +149,34 @@ export class TriplitService {
       take(1)
     );
   }
-
-  // Removed createLocalClient method
-
-  // Removed createRemoteClient method
-
-  private setupClientListeners(client: TriplitClient<typeof schema>, prefix: 'Local' | 'Remote'): () => void {
-    // Store all cleanup functions
+  private setupClientListeners(client: TriplitClient<typeof schema>): () => void {
     const cleanupFunctions = [
       // Connection status
       client.onConnectionStatusChange((status) => {
-        console.log(`TriplitService: ${prefix} client connection status changed:`, {
+        console.log('TriplitService: Connection status changed:', {
           from: client.connectionStatus,
           to: status,
-          serverUrl: prefix === 'Remote' ? environment.triplitServerUrl : undefined
+          serverUrl: environment.triplitServerUrl
         });
         this.connectionStatus.set(status as ConnectionStatus);
       }),
 
       // Sync errors
       client.onFailureToSyncWrites((e) => {
-        console.error(`TriplitService: ${prefix} client failed to sync writes:`, { error: e });
+        console.error('TriplitService: Failed to sync writes:', { error: e });
       }),
 
       // WebSocket messages
       client.onSyncMessageSent((message) => {
-        console.debug(`TriplitService: ${prefix} client sent message:`, message);
+        console.debug('TriplitService: Message sent:', message);
       }),
 
       client.onSyncMessageReceived((message) => {
-        console.debug(`TriplitService: ${prefix} client received message:`, message);
+        console.debug('TriplitService: Message received:', message);
       })
     ];
 
-    // Return a composite cleanup function that calls all cleanup functions
-    return () => {
-      cleanupFunctions.forEach(cleanup => cleanup());
-    };
+    return () => cleanupFunctions.forEach(cleanup => cleanup());
   }
 
   async syncToRemote(userId: string): Promise<void> {

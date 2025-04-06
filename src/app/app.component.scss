@@ -49,12 +49,10 @@
   }
 }
 
-/* First, fix the header alignment we just did */
 .auth-section:first-child {
   flex: 0;  /* Don't grow or shrink */
 }
 
-/* And restore/fix the projects grid layout */
 .projects-grid {
   display: grid;
   grid-template-columns: 400px 1fr;
@@ -111,36 +109,6 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 0.5rem;
-  }
-}
-
-.sync-button {
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  padding: 0.375rem 0.75rem;
-  cursor: pointer;
-  font-size: 0.875rem;
-  
-  &:hover {
-    background-color: #0056b3;
-  }
-  
-  &:active {
-    background-color: #004085;
-  }
-
-  &:disabled {
-    background-color: #666;
-    cursor: not-allowed;
-    opacity: 0.7;
-  }
-
-  @media (max-width: 768px) {
-    width: 100%;
-    padding: 0.75rem;
-    font-size: 1rem;
   }
 }
 

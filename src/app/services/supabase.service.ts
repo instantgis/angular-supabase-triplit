@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, OnDestroy, inject } from '@angular/core';
 import { createClient, SupabaseClient, User } from '@supabase/supabase-js';
 import { environment } from '../../environments/.generated/environment';
 import { BehaviorSubject } from 'rxjs';
@@ -7,13 +7,14 @@ import { TriplitService } from './triplit.service';
 @Injectable({
   providedIn: 'root'
 })
-export class SupabaseService {
+export class SupabaseService implements OnDestroy {
   private supabase: SupabaseClient;
   private userSubject = new BehaviorSubject<User | null>(null);
   user$ = this.userSubject.asObservable();
+  private authStateCleanup?: () => void;
+  private readonly triplitService = inject(TriplitService);
 
-  constructor(private triplitService: TriplitService) {
-    // Validate URLs before initialization
+  constructor() {
     if (!environment.supabaseUrl || !environment.supabaseUrl.startsWith('https://')) {
       console.error('Invalid Supabase URL:', environment.supabaseUrl);
       throw new Error('Invalid Supabase URL configuration');
@@ -23,7 +24,6 @@ export class SupabaseService {
       throw new Error('Missing Supabase key configuration');
     }
 
-    // Ensure URL ends with no trailing slash
     const supabaseUrl = environment.supabaseUrl.replace(/\/$/, '');
 
     this.supabase = createClient(
@@ -38,23 +38,47 @@ export class SupabaseService {
       }
     );
 
-    // Let's handle initial auth state only through getSession()
-    this.supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        this.userSubject.next(session.user);
-      }
-    });
+    this.setupAuthSubscription();
+  }
 
-    // Handle both sign-in and sign-out events
-    this.supabase.auth.onAuthStateChange((event, session) => {
-      console.log('Supabase auth event:', event);
-      if (event === 'SIGNED_IN' && session?.user) {
-        this.userSubject.next(session.user);
-      } else if (event === 'SIGNED_OUT') {
-        this.userSubject.next(null);
-        this.triplitService.endSession();
+  private setupAuthSubscription() {
+    const { data: { subscription } } = this.supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('Auth state changed:', { event, session });
+        
+        switch (event) {
+          case 'INITIAL_SESSION':
+          case 'SIGNED_IN':
+            this.userSubject.next(session?.user ?? null);
+            if (session) {
+              try {
+                await this.triplitService.startAuthenticatedSession(session.access_token ?? null);
+              } catch (error) {
+                console.error('Failed to login with token:', error);
+                // Re-throw to allow upstream error handling
+                throw error;
+              }
+            }
+            break;
+            
+          case 'SIGNED_OUT':
+            this.userSubject.next(null);
+            this.triplitService.endSession();
+            break;
+            
+          case 'TOKEN_REFRESHED':
+            await this.triplitService.endSession();
+            await this.triplitService.startAuthenticatedSession(session?.access_token ?? null);
+            break;
+        }
       }
-    });
+    );
+
+    this.authStateCleanup = () => subscription.unsubscribe();
+  }
+
+  ngOnDestroy() {
+    this.authStateCleanup?.();
   }
 
   async signUp(email: string, password: string) {

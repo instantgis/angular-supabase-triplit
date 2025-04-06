@@ -16,13 +16,6 @@
           </div>
           <div class="triplit-controls">
             <app-connection-status />
-            <button 
-              class="sync-button" 
-              (click)="syncLocalProjects()"
-              [disabled]="!(supabaseService.user$ | async)"
-            >
-              Sync to Cloud
-            </button>
           </div>
         </div>
       </div>
