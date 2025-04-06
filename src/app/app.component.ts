@@ -53,9 +53,6 @@ export class AppComponent implements OnInit, OnDestroy {
   constructor() {}
 
   ngOnInit() {
-    const client = this.triplitService.createLocalClient();
-    console.log('AppComponent: Local client initialized');
-
     // Initially get all projects without userId filter
     this.queryResults = this.triplitService.getProjectsQueryForUser();
     this.currentSubscription = this.queryResults.subscribe(projects => {
@@ -72,7 +69,6 @@ export class AppComponent implements OnInit, OnDestroy {
     const { data: { session } } = await this.supabaseService.getSession();
     const token = session?.access_token ?? '';
     
-    this.triplitService.createRemoteClient(token);
     await this.triplitService.loginWithToken(token);
     
     await firstValueFrom(this.triplitService.waitForConnection().pipe(take(1)));
@@ -93,7 +89,6 @@ export class AppComponent implements OnInit, OnDestroy {
     const { data: { session } } = await this.supabaseService.getSession();
     const token = session?.access_token ?? '';
     
-    this.triplitService.createRemoteClient(token);
     await this.triplitService.loginWithToken(token);
     
     await firstValueFrom(this.triplitService.waitForConnection().pipe(take(1)));

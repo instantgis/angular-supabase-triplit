@@ -32,7 +32,19 @@ export class TriplitService {
     distinctUntilChanged()
   );
   private localConnectionStatusCleanup?: () => void;
-
+  constructor() {
+    this.client = new TriplitClient<typeof schema>({
+      storage: 'indexeddb',
+      schema,
+      logLevel: 'debug',
+      serverUrl: environment.triplitServerUrl,
+      autoConnect: false,
+      onSessionError: async (type) => {
+        console.warn('TriplitService: Remote client session error:', type);
+        await this.handleSessionError();
+      } 
+    });
+  }
   private async handleSessionError(): Promise<void> {
     try {
       await this.endSession();
@@ -133,69 +145,9 @@ export class TriplitService {
     );
   }
 
-  createLocalClient(): TriplitClient<typeof schema> {
-    console.log('TriplitService: Creating local client (no remote sync)');
-    
-    const client = new TriplitClient<typeof schema>({
-      storage: 'indexeddb',
-      schema,
-      logLevel: 'debug',
-      serverUrl: undefined,  // No WebSocket connection attempted
-      onSessionError: async (type) => {
-        console.warn('TriplitService: Local client session error:', type);
-        await this.handleSessionError();
-      }
-    });
+  // Removed createLocalClient method
 
-    console.log('TriplitService: Initial client connection status:', client.connectionStatus);
-    
-    // Log ALL connection status changes
-    client.onConnectionStatusChange((status) => {
-      console.log('TriplitService: Local client connection status changed:', {
-        from: client.connectionStatus,
-        to: status
-      });
-      this.connectionStatus.set(status as ConnectionStatus);
-    });
-
-    this.client = client;
-    return client;
-  }
-
-  createRemoteClient(token: string): TriplitClient<typeof schema> {
-    console.log('Creating remote client');
-    
-    if (this.localConnectionStatusCleanup) {
-      this.localConnectionStatusCleanup();
-      this.localConnectionStatusCleanup = undefined;
-    }
-
-    const client = new TriplitClient<typeof schema>({
-      storage: 'indexeddb',
-      schema,
-      logLevel: 'debug',
-      serverUrl: environment.triplitServerUrl,
-      token,
-      onSessionError: async (type) => {
-        console.warn('Remote client session error:', type);
-        await this.handleSessionError();
-      }
-    });
-
-    console.log('Initial connection status:', client.connectionStatus);
-    this.connectionStatus.set(client.connectionStatus as ConnectionStatus);
-    
-    client.onConnectionStatusChange((status) => {
-      console.log('Connection status changed:', {
-        from: client.connectionStatus,
-        to: status
-      });
-      this.connectionStatus.set(status as ConnectionStatus);
-    });
-
-    this.client = client;
-    return client;
-  }
+  // Removed createRemoteClient method
 
   private setupClientListeners(client: TriplitClient<typeof schema>, prefix: 'Local' | 'Remote'): () => void {
     // Store all cleanup functions
