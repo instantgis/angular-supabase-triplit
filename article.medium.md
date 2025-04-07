@@ -13,7 +13,30 @@ A practical guide to building offline-first applications that sync when ready.
 - A Triplit project
 
 ## Architecture Flow
-[Upload architecture flow diagram to Medium showing the transition from local-only to synced state]
+[Replace with new mermaid diagram]
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant App
+    participant Supabase
+    participant Triplit
+
+    User->>App: Start working (offline)
+    App->>Triplit: Initialize client (autoConnect: false)
+    Note over App,Triplit: Works offline, stores in IndexedDB
+
+    User->>App: Choose to sign in
+    App->>Supabase: Authenticate
+    Supabase-->>App: Return user + token
+
+    Note over User,App: User continues working...
+
+    User->>App: Click "Sync to Remote"
+    App->>Triplit: claimAllLocalCollections(userId)
+    App->>Triplit: startAuthenticatedSession(token)
+    Note over App,Triplit: Data syncs bidirectionally
+```
 
 ## The Challenge
 Building an audio guide creation platform with a unique requirement: users should be able to start working immediately offline, then optionally sync across devices later. This meant combining Supabase's authentication with Triplit's offline-first capabilities in a way that wasn't previously documented.
@@ -31,77 +54,117 @@ This removes the friction of mandatory sign-up and matches how tour creators act
 This ensures that when transitioning from local to cloud storage, each user's data remains completely private and invisible to other users.
 
 ## The Solution
-The key insight is that Triplit can transition from local-only to cloud-synced operation through three critical functions:
+The key insight is using a single Triplit client instance that starts disconnected and can later be authenticated:
 
-### 1. Start Local-Only
-Initialize Triplit without a server URL for pure local operation:
-
+### 1. Initialize Triplit Client
 ```typescript
-createLocalClient(): TriplitClient<typeof schema> {
-  const client = new TriplitClient<typeof schema>({
+constructor() {
+  this.client = new TriplitClient<typeof schema>({
     storage: 'indexeddb',
     schema,
-    serverUrl: undefined,  // Key: No remote connection
+    serverUrl: environment.triplitServerUrl,
+    autoConnect: false,  // Start disconnected
+    onSessionError: async (type) => {
+      console.warn('Session error:', type);
+      await this.handleSessionError();
+    },
   });
-  return client;
+
+  this.connectionStatusCleanup = this.setupClientListeners(this.client);
 }
 ```
 
-### 2. Clean Up Before Transition
-Before switching to remote mode, it's critical to clean up all existing subscriptions and event handlers:
+### 2. Handle Authentication Separately
+The login process is handled independently through Supabase:
 
 ```typescript
-async syncLocalProjects() {
-  // Clean up existing subscription
-  if (this.currentSubscription) {
-    this.currentSubscription.unsubscribe();
-  }
-
-  // Clean up connection status listeners
-  if (this.localConnectionStatusCleanup) {
-    this.localConnectionStatusCleanup();
-  }
-
-  // Sync local data
-  await this.triplitService.syncToRemote(userId);
-  
-  // Create new remote client
-  const client = this.triplitService.createRemoteClient(token);
-  
-  // Set up new subscriptions with remote client
-  this.queryResults = this.triplitService.getProjectsQueryForUser(userId);
-  this.currentSubscription = this.queryResults.subscribe(/*...*/);
+async signIn(email: string, password: string) {
+  const { data, error } = await this.supabase.auth.signInWithPassword({
+    email,
+    password
+  });
+  if (error) throw error;
+  return data;
 }
 ```
 
-This cleanup is essential because:
-- Old subscriptions would continue to use the local client
-- Event handlers might fire for both local and remote clients
-- Query results need to be re-established with the remote client to enforce ownership rules
-- Memory leaks are prevented by proper cleanup
-
-### 3. Switch to Remote Mode
-Create a new Triplit instance with cloud connectivity:
+### 3. Sync When Ready
+Users explicitly choose when to sync their data:
 
 ```typescript
-createRemoteClient(token: string): TriplitClient<typeof schema> {
-  const client = new TriplitClient<typeof schema>({
-    storage: 'indexeddb',  // Same local storage
-    schema,
-    serverUrl: environment.triplitServerUrl,  // Now with remote URL
-    token,  // And authentication
-  });
-  return client;
+async startRemoteSync() {
+  const { data: { session } } = await this.supabaseService.getSession();
+  if (session?.access_token) {
+    await this.triplitService.claimAllLocalCollections(session.user.id);
+    await this.triplitService.startAuthenticatedSession(session.access_token);
+  }
 }
+```
+
+## Schema Design
+The schema enforces data isolation using role-based permissions:
+
+```typescript
+export const schema = S.Collections({
+  projects: {
+    schema: S.Schema({
+      id: S.Id(),
+      owner_id: S.String({ nullable: true }),
+      shared_with: S.Set(S.String()),
+      // ... other fields
+    }),
+    permissions: {
+      read: {
+        filter: [
+          or([
+            ['owner_id', '=', '$role.userId'],
+            ['shared_with', 'includes', '$role.userEmail']
+          ])
+        ]
+      },
+      insert: {
+        filter: [
+          or([
+            ['owner_id', '=', '$role.userId'],
+            ['shared_with', 'includes', '$role.userEmail']
+          ])
+        ]
+      },
+      update: {
+        filter: [
+          or([
+            ['owner_id', '=', '$role.userId'],
+            ['shared_with', 'includes', '$role.userEmail']
+          ])
+        ]
+      },
+      delete: {
+        filter: [['owner_id', '=', '$role.userId']]
+      }
+    }
+  }
+});
 ```
 
 ## Implementation Notes
-- Triplit maintains the same IndexedDB storage throughout the transition
-- The remote client automatically handles merging local and remote states
-- Security rules only activate once in remote mode
-- Supabase handles just-in-time authentication when users are ready to sync
+- Single client instance maintains consistency throughout the app lifecycle
+- Authentication and sync are separate user actions
+- Permissions activate automatically when session starts
+- Connection status is tracked and displayed to users
+- Automatic conflict resolution handled by Triplit
 
 ## Troubleshooting Common Issues
+
+### Connection Status
+Monitor the connection status to debug sync issues:
+```typescript
+private setupClientListeners(client: TriplitClient<typeof schema>) {
+  client.onConnectionStatusChange((status) => {
+    console.log('Connection status:', status);
+    this.connectionStatus.set(status);
+  });
+}
+```
 
 ### Supabase Auth Version
 You might encounter warnings related to Supabase's auth client (GoTrue). This is a known issue that remains unfixed. As a temporary workaround, add the following override in your `package.json`:
@@ -153,5 +216,6 @@ Thanks for reading! If you found this article helpful:
 - 🐛 Found an issue? Open a GitHub issue
 
 For questions or feedback, you can find me on GitHub or reach out through the repository issues.
+
 
 
