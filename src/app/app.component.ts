@@ -8,8 +8,7 @@ import { Observable, Subscription, firstValueFrom } from 'rxjs';
 import type { Models } from './services/triplit.service';
 import { SupabaseService } from './services/supabase.service';
 import { ProjectCardComponent } from './project/project-card/project-card.component';
-import { take } from 'rxjs/operators';
-import { User } from '@supabase/supabase-js';
+import { take, map, distinctUntilChanged, switchMap } from 'rxjs/operators';
 
 /**
  * Root component handling:
@@ -43,24 +42,9 @@ import { User } from '@supabase/supabase-js';
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
 })
-export class AppComponent implements OnInit, OnDestroy {
-  queryResults!: Observable<Models['projets'][]>;
-  private currentSubscription?: Subscription;
-
+export class AppComponent {
   readonly triplitService = inject(TriplitService);
   readonly supabaseService = inject(SupabaseService);
 
-  constructor() {}
-
-  ngOnInit() {
-    // Initially get all projects without userId filter
-    this.queryResults = this.triplitService.getProjectsQueryForUser();
-    this.currentSubscription = this.queryResults.subscribe(projects => {
-      console.log('AppComponent: Projects loaded:', projects);
-    });
-  }
-
-  ngOnDestroy() {
-    this.currentSubscription?.unsubscribe();
-  }
+  readonly queryResults = this.triplitService.getProjectsQueryForUser();
 }

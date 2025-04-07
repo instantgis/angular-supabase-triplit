@@ -9,7 +9,9 @@
     "prebuild": "node replace-env.js",
     "build": "ng build angular-triplit-supabase",
     "clean": "rimraf src/environments/.generated",
-    "watch": "ng build angular-triplit-supabase --watch --configuration development"
+    "watch": "ng build angular-triplit-supabase --watch --configuration development",
+    "push-schema": "npx triplit schema push",
+    "clear-schema": "npx triplit clear"
   },
   "private": true,
   "dependencies": {

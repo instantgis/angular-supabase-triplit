@@ -1,17 +1,21 @@
-import { Schema as S, type Entity } from '@triplit/client';
+import { Roles, Schema as S, or } from '@triplit/client';
+
+export const roles: Roles = { 
+  user: {
+    match: {
+     sub: '$userId',
+     role: 'authenticated',
+     email: '$userEmail',
+    },
+  }
+}
 
 export const schema = S.Collections({
-  todos: {
-    schema: S.Schema({
-      id: S.Id(),
-      text: S.String(),
-      completed: S.Boolean({ default: false }),
-      created_at: S.Date({ default: S.Default.now() }),
-    }),
-  },
   projets: {
     schema: S.Schema({
       id: S.Id(),
+      owner_id: S.String({ nullable: true }),
+      shared_with: S.Set(S.String(), { default: S.Default.Set.empty() }), 
       name: S.String({ unique: true, nullable: false }),
       content: S.String({ nullable: true }),
       created_at: S.Date({ default: S.Default.now() }),
@@ -20,7 +24,6 @@ export const schema = S.Collections({
       transport: S.String({ enum: ['walking', 'biking', 'driving', 'boating', 'flying'] }),
       status: S.String({ enum: ['draft', 'published'] }),
       duration: S.Number({ nullable: true, default: 0.0 }),
-      owner_id: S.String({ nullable: false }),
     }),
     relationships: {
       pois: S.RelationMany('pois', {
@@ -30,16 +33,49 @@ export const schema = S.Collections({
         where: [['project_id', '=', '$id']],
       }),
     },
-    rules: {
-      read: 'auth.id = owner_id',
-      write: 'auth.id = owner_id',
+    permissions: {
+      user: {
+        read: {
+          filter: [
+            or([
+              ['owner_id', '=', '$role.userId'],
+              ['shared_with', 'includes', '$role.userEmail']
+            ])
+          ]
+        },
+        insert: {
+          filter: [
+            or([
+              ['owner_id', '=', '$role.userId'],
+              ['shared_with', 'includes', '$role.userEmail']
+            ])
+          ]
+        },
+        update: {
+          filter: [
+            or([
+              ['owner_id', '=', '$role.userId'],
+              ['shared_with', 'includes', '$role.userEmail']
+            ])
+          ]
+        },
+        delete: {
+          filter: [
+            or([
+              ['owner_id', '=', '$role.userId'],
+              ['shared_with', 'includes', '$role.userEmail']
+            ])
+          ]
+        }
+      }
     }
   },
   pois: {
     schema: S.Schema({
       id: S.Id(),
       project_id: S.String({ nullable: false }),
-      owner_id: S.String({ nullable: false }),
+      owner_id: S.String({ nullable: true }),
+      shared_with: S.Set(S.String(), { default: S.Default.Set.empty() }), 
       label: S.String({ unique: true, nullable: true }),
       created_at: S.Date({ default: S.Default.now() }),
       edited_at: S.Date(),
@@ -57,47 +93,146 @@ export const schema = S.Collections({
         where: [['poi_id', '=', '$id']],
       }),
     },
-    rules: {
-      read: 'auth.id = owner_id',
-      write: 'auth.id = owner_id',
+    permissions: {
+      user: {
+        read: {
+          filter: [
+            or([
+              ['owner_id', '=', '$role.userId'],
+              ['shared_with', 'includes', '$role.userEmail']
+            ])
+          ]
+        },
+        insert: {
+          filter: [
+            or([
+              ['owner_id', '=', '$role.userId'],
+              ['shared_with', 'includes', '$role.userEmail']
+            ])
+          ]
+        },
+        update: {
+          filter: [
+            or([
+              ['owner_id', '=', '$role.userId'],
+              ['shared_with', 'includes', '$role.userEmail']
+            ])
+          ]
+        },
+        delete: {
+          filter: [
+            or([
+              ['owner_id', '=', '$role.userId'],
+              ['shared_with', 'includes', '$role.userEmail']
+            ])
+          ]
+        }
+      }
     }
   },
   medias: {
     schema: S.Schema({
       id: S.Id(),
       poi_id: S.String({ nullable: false }),
-      owner_id: S.String({ nullable: false }),
+      owner_id: S.String({ nullable: true }),
+      shared_with: S.Set(S.String(), { default: S.Default.Set.empty() }), 
       created_at: S.Date({ default: S.Default.now() }),
       edited_at: S.Date(),
       type: S.String({ enum: ['image', 'audio', 'video'] }),
       url: S.String({ nullable: false }),
       order: S.Number({ nullable: false, default: 0 }),
     }),
-    rules: {
-      read: 'auth.id = owner_id',
-      write: 'auth.id = owner_id',
+    permissions: {
+      user: {
+        read: {
+          filter: [
+            or([
+              ['owner_id', '=', '$role.userId'],
+              ['shared_with', 'includes', '$role.userEmail']
+            ])
+          ]
+        },
+        insert: {
+          filter: [
+            or([
+              ['owner_id', '=', '$role.userId'],
+              ['shared_with', 'includes', '$role.userEmail']
+            ])
+          ]
+        },
+        update: {
+          filter: [
+            or([
+              ['owner_id', '=', '$role.userId'],
+              ['shared_with', 'includes', '$role.userEmail']
+            ])
+          ]
+        },
+        delete: {
+          filter: [
+            or([
+              ['owner_id', '=', '$role.userId'],
+              ['shared_with', 'includes', '$role.userEmail']
+            ])
+          ]
+        }
+      }
     }
   },
   thumbnails: {
     schema: S.Schema({
       id: S.Id(),
       project_id: S.String({ nullable: false }),
-      owner_id: S.String({ nullable: false }),
+      owner_id: S.String({ nullable: true }),
+      shared_with: S.Set(S.String(), { default: S.Default.Set.empty() }), 
       created_at: S.Date({ default: S.Default.now() }),
       edited_at: S.Date(),
       type: S.String({ enum: ['image', 'audio', 'video'] }),
       url: S.String({ nullable: false }),
     }),
-    rules: {
-      read: 'auth.id = owner_id',
-      write: 'auth.id = owner_id',
+    permissions: {
+      user: {
+        read: {
+          filter: [
+            or([
+              ['owner_id', '=', '$role.userId'],
+              ['shared_with', 'includes', '$role.userEmail']
+            ])
+          ]
+        },
+        insert: {
+          filter: [
+            or([
+              ['owner_id', '=', '$role.userId'],
+              ['shared_with', 'includes', '$role.userEmail']
+            ])
+          ]
+        },
+        update: {
+          filter: [
+            or([
+              ['owner_id', '=', '$role.userId'],
+              ['shared_with', 'includes', '$role.userEmail']
+            ])
+          ]
+        },
+        delete: {
+          filter: [
+            or([
+              ['owner_id', '=', '$role.userId'],
+              ['shared_with', 'includes', '$role.userEmail']
+            ])
+          ]
+        }
+      }
     }
   },
   extents: {
     schema: S.Schema({
       id: S.Id(),
       project_id: S.String({ nullable: false }),
-      owner_id: S.String({ nullable: false }),
+      owner_id: S.String({ nullable: true }),
+      shared_with: S.Set(S.String(), { default: S.Default.Set.empty() }), 
       created_at: S.Date({ default: S.Default.now() }),
       edited_at: S.Date(),
       min_latitude: S.Number({ nullable: false }),
@@ -110,14 +245,48 @@ export const schema = S.Collections({
         where: [['id', '=', '$project_id']],
       }),
     },
-    rules: {
-      read: 'auth.id = owner_id',
-      write: 'auth.id = owner_id',
+    permissions: {
+      user: {
+        read: {
+          filter: [
+            or([
+              ['owner_id', '=', '$role.userId'],
+              ['shared_with', 'includes', '$role.userEmail']
+            ])
+          ]
+        },
+        insert: {
+          filter: [
+            or([
+              ['owner_id', '=', '$role.userId'],
+              ['shared_with', 'includes', '$role.userEmail']
+            ])
+          ]
+        },
+        update: {
+          filter: [
+            or([
+              ['owner_id', '=', '$role.userId'],
+              ['shared_with', 'includes', '$role.userEmail']
+            ])
+          ]
+        },
+        delete: {
+          filter: [
+            or([
+              ['owner_id', '=', '$role.userId'],
+              ['shared_with', 'includes', '$role.userEmail']
+            ])
+          ]
+        }
+      }
     }
   }
 });
 
-export type Todo = Entity<typeof schema, 'todos'>;
+
+
+
 
 
 

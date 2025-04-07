@@ -13,9 +13,15 @@ import { LoginComponent } from '../login/login.component';
 export class ProfileComponent {
   showLoginForm = false;
 
-  constructor(public supabaseService: SupabaseService) {}
+  constructor(public supabaseService: SupabaseService) {
+    // Add debug logging
+    this.supabaseService.user$.subscribe(user => {
+      console.log('Current user state:', user);
+    });
+  }
 
   async signOut() {
     await this.supabaseService.signOut();
   }
 }
+

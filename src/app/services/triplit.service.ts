@@ -7,10 +7,13 @@ import { schema } from '../../../triplit/schema';
 import { environment } from '../../environments/.generated/environment';
 import type { Entity } from '@triplit/client';
 
-export type ConnectionStatus = 'OPEN' | 'CLOSED' | 'CONNECTING' | 'UNINITIALIZED';
+export type ConnectionStatus =
+  | 'OPEN'
+  | 'CLOSED'
+  | 'CONNECTING'
+  | 'UNINITIALIZED';
 
 export type Models = {
-  todos: Entity<typeof schema, 'todos'>;
   projets: Entity<typeof schema, 'projets'>;
   pois: Entity<typeof schema, 'pois'>;
   medias: Entity<typeof schema, 'medias'>;
@@ -23,7 +26,7 @@ export type ProjectWithRelations = Models['projets'] & {
 };
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class TriplitService {
   private client!: TriplitClient<typeof schema>;
@@ -42,7 +45,7 @@ export class TriplitService {
       onSessionError: async (type) => {
         console.warn('TriplitService: Remote client session error:', type);
         await this.handleSessionError();
-      } 
+      },
     });
 
     this.connectionStatusCleanup = this.setupClientListeners(this.client);
@@ -76,9 +79,9 @@ export class TriplitService {
   async startAuthenticatedSession(token: string | null): Promise<void> {
     console.log('TriplitService: startAuthenticatedSession called', {
       hasToken: !!token,
-      clientInitialized: !!this.client
+      clientInitialized: !!this.client,
     });
-    
+
     if (!token) {
       throw new Error('Cannot start session without a token');
     }
@@ -89,7 +92,7 @@ export class TriplitService {
     } catch (error) {
       console.error('TriplitService: Error in startAuthenticatedSession:', {
         message: error instanceof Error ? error.message : 'Unknown error',
-        error
+        error,
       });
       this.endSession();
       throw error;
@@ -105,37 +108,25 @@ export class TriplitService {
     }
   }
 
-  getProjectsQueryForUser(userId?: string): Observable<Models['projets'][]> {
-    console.log('Getting projects:', {
-      mode: this.client.serverUrl ? 'remote' : 'local'
-    });
-    
+  // Make this private since it's now an implementation detail
+  getProjectsQueryForUser() {
     const query = this.client.query('projets')
       .Order('created_at', 'DESC');
     
-    if (this.client.serverUrl && userId) {
-      query.Where('owner_id', '=', userId);
-    }
-
-    return createQuery(() => ({ client: this.client, query })).results$.pipe(
-      map(results => results || []),
-      tap(results => {
-        console.log('Query results:', {
-          count: results.length,
-          mode: this.client.serverUrl ? 'remote' : 'local'
-        });
-      })
-    ) as Observable<Models['projets'][]>;
+    return createQuery(() => ({ client: this.client, query }));
   }
 
-  getProjectWithRelations(projectId: string): Observable<ProjectWithRelations | undefined> {
-    const query = this.client.query('projets')
+  getProjectWithRelations(
+    projectId: string
+  ): Observable<ProjectWithRelations | undefined> {
+    const query = this.client
+      .query('projets')
       .Where('id', '=', projectId)
       .Include('pois')
       .Include('thumbnail');
 
     return createQuery(() => ({ client: this.client, query })).results$.pipe(
-      map(results => results?.[0])
+      map((results) => results?.[0])
     );
   }
 
@@ -145,18 +136,20 @@ export class TriplitService {
 
   waitForConnection(): Observable<ConnectionStatus> {
     return this.connectionStatus$.pipe(
-      filter(status => status === 'OPEN'),
+      filter((status) => status === 'OPEN'),
       take(1)
     );
   }
-  private setupClientListeners(client: TriplitClient<typeof schema>): () => void {
+  private setupClientListeners(
+    client: TriplitClient<typeof schema>
+  ): () => void {
     const cleanupFunctions = [
       // Connection status
       client.onConnectionStatusChange((status) => {
         console.log('TriplitService: Connection status changed:', {
           from: client.connectionStatus,
           to: status,
-          serverUrl: environment.triplitServerUrl
+          serverUrl: environment.triplitServerUrl,
         });
         this.connectionStatus.set(status as ConnectionStatus);
       }),
@@ -173,37 +166,117 @@ export class TriplitService {
 
       client.onSyncMessageReceived((message) => {
         console.debug('TriplitService: Message received:', message);
-      })
+      }),
     ];
 
-    return () => cleanupFunctions.forEach(cleanup => cleanup());
+    return () => cleanupFunctions.forEach((cleanup) => cleanup());
   }
 
-  async syncToRemote(userId: string): Promise<void> {
-    console.log('Starting sync to remote');
-    
-    try {
-      const query = this.client.query('projets')
-        .Where('owner_id', '=', null);
+  async claimLocalProjets(userId: string) {
+    const query = this.client
+      .query('projets')
+      .Where('owner_id', '=', null)
+      .Select(['id', 'owner_id']);
+    const projects = await this.client.fetch(query);
+    console.log('Found local projects to claim:', projects.length);
 
-      const projects = await this.client.fetch(query);
-      console.log('Found local projects to sync:', projects.length);
-      
-      for (const project of projects) {
-        try {
-          await this.client.update('projets', project.id, async (entity) => {
-            entity.owner_id = userId;
-          });
-          console.log('Updated project:', { id: project.id });
-        } catch (error) {
-          console.error('Error updating project:', { id: project.id });
-        }
+    for (const project of projects) {
+      try {
+        await this.client.update('projets', project.id, (entity) => {
+          entity.owner_id = userId;
+        });
+        console.log('Claimed project:', { id: project.id });
+      } catch (error) {
+        console.error('Error claiming project:', { id: project.id, error });
       }
-      console.log('Sync complete');
-
-    } catch (error) {
-      console.error('Error in sync:', error);
-      throw error;
     }
+  }
+
+  async claimLocalPois(userId: string) {
+    const query = this.client
+      .query('pois')
+      .Where('owner_id', '=', null)
+      .Select(['id', 'owner_id']);
+    const pois = await this.client.fetch(query);
+    console.log('Found local POIs to claim:', pois.length);
+
+    for (const poi of pois) {
+      try {
+        await this.client.update('pois', poi.id, (entity) => {
+          entity.owner_id = userId;
+        });
+        console.log('Claimed POI:', { id: poi.id });
+      } catch (error) {
+        console.error('Error claiming POI:', { id: poi.id, error });
+      }
+    }
+  }
+
+  async claimLocalMedias(userId: string) {
+    const query = this.client
+      .query('medias')
+      .Where('owner_id', '=', null)
+      .Select(['id', 'owner_id']);
+    const medias = await this.client.fetch(query);
+    console.log('Found local medias to claim:', medias.length);
+
+    for (const media of medias) {
+      try {
+        await this.client.update('medias', media.id, (entity) => {
+          entity.owner_id = userId;
+        });
+        console.log('Claimed media:', { id: media.id });
+      } catch (error) {
+        console.error('Error claiming media:', { id: media.id, error });
+      }
+    }
+  }
+
+  async claimLocalThumbnails(userId: string) {
+    const query = this.client
+      .query('thumbnails')
+      .Where('owner_id', '=', null)
+      .Select(['id', 'owner_id']);
+    const thumbnails = await this.client.fetch(query);
+    console.log('Found local thumbnails to claim:', thumbnails.length);
+
+    for (const thumbnail of thumbnails) {
+      try {
+        await this.client.update('thumbnails', thumbnail.id, (entity) => {
+          entity.owner_id = userId;
+        });
+        console.log('Claimed thumbnail:', { id: thumbnail.id });
+      } catch (error) {
+        console.error('Error claiming thumbnail:', { id: thumbnail.id, error });
+      }
+    }
+  }
+
+  async claimLocalExtents(userId: string) {
+    const query = this.client
+      .query('extents')
+      .Where('owner_id', '=', null)
+      .Select(['id', 'owner_id']);
+    const extents = await this.client.fetch(query);
+    console.log('Found local extents to claim:', extents.length);
+
+    for (const extent of extents) {
+      try {
+        await this.client.update('extents', extent.id, (entity) => {
+          entity.owner_id = userId;
+        });
+        console.log('Claimed extent:', { id: extent.id });
+      } catch (error) {
+        console.error('Error claiming extent:', { id: extent.id, error });
+      }
+    }
+  }
+
+  async claimAllLocalCollections(userId: string): Promise<void> {
+    await this.claimLocalProjets(userId);
+    await this.claimLocalPois(userId);
+    await this.claimLocalMedias(userId);
+    await this.claimLocalThumbnails(userId);
+    await this.claimLocalExtents(userId);
   }
 }

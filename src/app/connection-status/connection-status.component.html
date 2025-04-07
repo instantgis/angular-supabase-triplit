@@ -4,4 +4,11 @@
     <span class="indicator" [class]="status$ | async"></span>
     <span class="status-text">{{ status$ | async | titlecase }}</span>
   </div>
+  <button 
+    (click)="startRemoteSync()"
+    [disabled]="!(isSignedIn$ | async) || (status$ | async) === 'OPEN'"
+    class="sync-button">
+    Sync to Remote
+  </button>
 </div>
+

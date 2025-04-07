@@ -48,22 +48,13 @@ export class SupabaseService implements OnDestroy {
         
         switch (event) {
           case 'INITIAL_SESSION':
+            break;
           case 'SIGNED_IN':
             this.userSubject.next(session?.user ?? null);
-            if (session) {
-              try {
-                await this.triplitService.startAuthenticatedSession(session.access_token ?? null);
-              } catch (error) {
-                console.error('Failed to login with token:', error);
-                // Re-throw to allow upstream error handling
-                throw error;
-              }
-            }
             break;
             
           case 'SIGNED_OUT':
             this.userSubject.next(null);
-            this.triplitService.endSession();
             break;
             
           case 'TOKEN_REFRESHED':
