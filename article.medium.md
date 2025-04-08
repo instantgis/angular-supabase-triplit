@@ -217,5 +217,15 @@ Thanks for reading! If you found this article helpful:
 
 For questions or feedback, you can find me on GitHub or reach out through the repository issues.
 
-
+Key logging features:
+- Real-time event logging with color-coded categories:
+  - 🟢 Green: Authentication events
+  - 🔵 Blue: Triplit sync/data operations
+  - 🟣 Purple: Application events
+  - 🔴 Red: Errors and warnings
+- Visual log viewer with integrated legend
+- Connection status monitoring
+- Automatic console interception
+- Error boundary implementation
+- Log retention management (1000 entries)
 

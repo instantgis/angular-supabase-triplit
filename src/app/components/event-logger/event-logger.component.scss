@@ -1,0 +1,191 @@
+.toggle-logger-btn {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  padding: 8px 16px;
+  background: #333;
+  border: 1px solid #444;
+  border-radius: 20px;
+  color: #fff;
+  cursor: pointer;
+  z-index: 999;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background: #444;
+  }
+}
+
+.event-logger {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 600px;
+  height: 400px;
+  background: #1e1e1e;
+  border: 1px solid #333;
+  border-radius: 8px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+
+  @media (max-width: 768px) {
+    width: auto;
+    left: 20px;
+    height: 60vh;
+  }
+}
+
+.logger-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid #333;
+
+  .header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    h3 {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 500;
+    }
+  }
+}
+
+.header-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.log-legend {
+  display: flex;
+  gap: 1rem;
+  padding: 8px 16px;
+  border-top: 1px solid #444;
+  margin-top: 8px;
+  font-size: 12px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #888;
+
+  .legend-marker {
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+  }
+
+  &.auth .legend-marker { 
+    background: #4CAF50; 
+  }
+  
+  &.triplit .legend-marker { 
+    background: #2196F3; 
+  }
+  
+  &.app .legend-marker { 
+    background: #9C27B0; 
+  }
+  
+  &.error .legend-marker { 
+    background: #f44336;
+  }
+}
+
+.clear-btn, .close-btn {
+  padding: 4px 8px;
+  background: #555;
+  border: none;
+  border-radius: 4px;
+  color: #fff;
+  cursor: pointer;
+  font-size: 12px;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background: #666;
+  }
+}
+
+.close-btn {
+  padding: 4px 10px;
+  font-size: 16px;
+  line-height: 1;
+  background: #444;
+
+  &:hover {
+    background: #dc3545;
+  }
+}
+
+.log-container {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+}
+
+.log-entry {
+  margin-bottom: 8px;
+  padding: 8px;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 12px;
+  background: rgba(255, 255, 255, 0.05);
+
+  &.auth { 
+    border-left: 3px solid #4CAF50; 
+  }
+  
+  &.triplit { 
+    border-left: 3px solid #2196F3; 
+  }
+  
+  &.app { 
+    border-left: 3px solid #9C27B0; 
+  }
+  
+  &.error { 
+    border-left: 3px solid #f44336;
+    background: rgba(244, 67, 54, 0.1);
+  }
+}
+
+.entry-header {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.timestamp {
+  color: #888;
+}
+
+.category {
+  font-weight: bold;
+  color: #ccc;
+}
+
+.message {
+  color: #ddd;
+}
+
+.details {
+  margin-top: 8px;
+  padding: 8px;
+  background: #2a2a2a;
+  border-radius: 4px;
+  overflow-x: auto;
+  font-size: 11px;
+  max-height: 200px;
+  margin: 0;
+}
+
+
+
+

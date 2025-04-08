@@ -1,0 +1,52 @@
+<button class="toggle-logger-btn" (click)="toggleLogger()">
+  Event Log
+</button>
+
+@if (isOpen) {
+  <div class="event-logger">
+    <div class="logger-header">
+      <div class="header-top">
+        <h3>Event Log</h3>
+        <div class="header-actions">
+          <button (click)="clearLogs()" class="clear-btn">Clear</button>
+          <button (click)="toggleLogger()" class="close-btn">×</button>
+        </div>
+      </div>
+      <div class="log-legend">
+        <div class="legend-item auth">
+          <span class="legend-marker"></span>
+          <span>Auth</span>
+        </div>
+        <div class="legend-item triplit">
+          <span class="legend-marker"></span>
+          <span>Triplit</span>
+        </div>
+        <div class="legend-item app">
+          <span class="legend-marker"></span>
+          <span>App</span>
+        </div>
+        <div class="legend-item error">
+          <span class="legend-marker"></span>
+          <span>Error</span>
+        </div>
+      </div>
+    </div>
+    <div class="log-container">
+      @for (entry of logger.logs$ | async; track entry.timestamp) {
+        <div class="log-entry" [class]="entry.category.toLowerCase()">
+          <div class="entry-header">
+            <span class="timestamp">{{ entry.timestamp | date:'HH:mm:ss.SSS' }}</span>
+            <span class="category">{{ entry.category }}</span>
+          </div>
+          <div class="message">{{ entry.message }}</div>
+          @if (entry.details) {
+            <pre class="details">{{ entry.details | json }}</pre>
+          }
+        </div>
+      }
+    </div>
+  </div>
+}
+
+
+

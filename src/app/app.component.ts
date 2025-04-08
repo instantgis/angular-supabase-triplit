@@ -9,6 +9,7 @@ import type { Models } from './services/triplit.service';
 import { SupabaseService } from './services/supabase.service';
 import { ProjectCardComponent } from './project/project-card/project-card.component';
 import { take, map, distinctUntilChanged, switchMap } from 'rxjs/operators';
+import { EventLoggerComponent } from "./components/event-logger/event-logger.component";
 
 /**
  * Root component handling:
@@ -38,7 +39,8 @@ import { take, map, distinctUntilChanged, switchMap } from 'rxjs/operators';
     ProfileComponent,
     CreateProjectComponent,
     ProjectCardComponent,
-  ],
+    EventLoggerComponent
+],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
 })
