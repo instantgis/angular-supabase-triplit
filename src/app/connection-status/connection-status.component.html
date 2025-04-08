@@ -6,9 +6,10 @@
   </div>
   <button 
     (click)="startRemoteSync()"
-    [disabled]="!(isSignedIn$ | async) || (status$ | async) === 'OPEN'"
+    [disabled]="!(isSignedIn$ | async)"
     class="sync-button">
     Sync to Remote
   </button>
 </div>
+
 

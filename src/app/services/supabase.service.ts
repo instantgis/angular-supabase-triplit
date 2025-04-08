@@ -48,6 +48,10 @@ export class SupabaseService implements OnDestroy {
         
         switch (event) {
           case 'INITIAL_SESSION':
+            // Modified this case to check for session
+            if (session) {
+              this.userSubject.next(session.user);
+            }
             break;
           case 'SIGNED_IN':
             this.userSubject.next(session?.user ?? null);
@@ -64,6 +68,19 @@ export class SupabaseService implements OnDestroy {
         }
       }
     );
+
+    // Modified this part to add error handling
+    this.supabase.auth.getSession().then(
+      ({ data: { session }}) => {
+        if (session) {
+          this.userSubject.next(session.user);
+        }
+      }
+    ).catch(error => {
+      if (!error.message?.includes('Refresh Token Not Found')) {
+        console.error('Unexpected auth error:', error);
+      }
+    });
 
     this.authStateCleanup = () => subscription.unsubscribe();
   }
